@@ -1,0 +1,107 @@
+<!doctype html>
+<!--
+
+  La curva del drago
+  Un disegno basato su una definizione ricorsiva
+    
+  -->
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="author" content="Gian Marco Todesco"/>
+<title>Dragon</title>
+<style>
+canvas { 
+    border: solid 2px blue; 
+    margin-left:auto; 
+    margin-right:auto;
+    margin-top:2em;
+    display:block;
+}
+div.buttons, h1 { text-align:center;}
+</style>
+</head>
+<body>
+<h1>Curva del drago</h1>
+<div class="buttons">
+        Livello <span id="level"></span> &nbsp;
+        <button onclick="changeLevel(1)">+</button>
+        <button onClick="changeLevel(-1)">-</button>
+</div>
+<canvas id="c" width="800" height="600"></canvas>
+<script>
+
+// canvas = l'area di disegno
+var canvas = document.getElementById('c');
+// w,h = dimensioni dell'area di disegno in pixel
+var w = canvas.width, h = canvas.height;
+// strumento per disegnare
+var ctx = canvas.getContext('2d');
+// posizione corrente di uno dei due estremi della curva
+var px = 200, py = 0;
+
+var currentLevel = 0;
+
+// funzione ricorsiva che disegna la curva del drago
+// dal punto (x0,y0) al punto (x1,y1).
+// level controlla il livello di ricorsione 
+function dragon(x0,y0,x1,y1, level) {
+    if(level==0) {
+        // al livello zero la curva è un semplice
+        // segmento che collega (x0,y0) con (x1,y1)
+        ctx.moveTo(x0,y0);
+        ctx.lineTo(x1,y1);
+    } else {
+        // altrimenti calcoliamo il punto intermedio
+        // (x2,y2) in modo che il segmento (x0,y0)-(x1,y1)
+        // sia l'ipotenusa di un triangolo rettangolo 
+        // isoscele 
+        var xm = (x0+x1)/2;
+        var ym = (y0+y1)/2;
+        var dx = x1-xm;
+        var dy = y1-ym;
+        var x2 = xm - dy;
+        var y2 = ym + dx;
+        // poi faccio due curve del drago di livello
+        // inferiore fra (x0,y0) => (x2,y2) e (x1,y1) => (x2,y2)
+        dragon(x0,y0,x2,y2,level-1);
+        dragon(x1,y1,x2,y2,level-1);        
+    }
+}
+
+//
+// Faccio il disegno completo
+//
+function draw() {
+    // cancello l'eventuale fotogramma precedente
+    ctx.clearRect(0,0,w,h);
+    // metto l'origine degli assi al centro del canvas
+    ctx.save();
+    ctx.translate(w/2,h/2);
+    // disegno la curva
+    var x = w/4;
+    ctx.beginPath();
+    dragon(-x,0,x,0, currentLevel);
+    ctx.stroke();
+    // ripristino il sistema di coordinate originali 
+    ctx.restore();
+
+    // visualizzo il livello
+    document.getElementById('level').innerHTML = currentLevel;
+}
+
+// disegno il primo fotogramma
+draw();
+
+function changeLevel(d) {
+    var level = currentLevel + d;
+    if(level<0) level=0;
+    else if(level>15) level=15;
+
+    if(level != currentLevel) {
+        currentLevel = level;
+        draw();
+    }
+}
+</script>
+</body>
